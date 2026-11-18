@@ -164,6 +164,11 @@ function handle(msg, conn) {
     case 'u': conn.held.delete(b); out(`u ${b}`); modVks(msg.m).reverse().forEach(v => out(`ku ${v}`)); break;
     case 's': { const y = int(msg.y, -2400, 2400); if (y) out(`s ${y}`); break; }
     case 'h': { const x = int(msg.x, -2400, 2400); if (x) out(`h ${x}`); break; }
+    case 'z': { // zoom = Ctrl + rueda (un paso por "muesca")
+      const n = int(msg.n, -10, 10);
+      if (n) { out('kd 17'); out(`s ${n * 120}`); out('ku 17'); }
+      break;
+    }
     case 'txt':
       if (typeof msg.s === 'string' && msg.s.length && msg.s.length <= 5000)
         out('t ' + Buffer.from(msg.s, 'utf8').toString('base64'));

@@ -133,7 +133,7 @@
   </div>
 </section>
 
-<div id="pad"><div id="hint">1 dedo: mover · toque: clic<br>2 dedos: scroll · toque con 2: clic derecho<br>doble toque y arrastrar: arrastrar</div></div>
+<div id="pad"><div id="hint">1 dedo: mover · toque: clic<br>2 dedos: scroll · pellizco: zoom · toque con 2: clic derecho<br>doble toque y arrastrar: arrastrar</div></div>
 
 <div id="btns">
   <button id="bl">Izquierdo</button>
@@ -150,6 +150,7 @@
     <label>Aceleración <span id="vAcc"></span><input type="range" id="acc" min="0" max="0.15" step="0.01"></label>
     <label>Velocidad del scroll <span id="vScr"></span><input type="range" id="scr" min="0.5" max="10" step="0.5"></label>
     <label class="chk"><input type="checkbox" id="inv"> Invertir scroll</label>
+    <label class="chk"><input type="checkbox" id="pinch"> Pellizco para zoom (Ctrl + rueda)</label>
     <label class="chk"><input type="checkbox" id="vib"> Vibrar al hacer clic</label>
     <button id="bFull">Pantalla completa</button>
     <button id="bPin">Cambiar PIN</button>
@@ -171,7 +172,7 @@
 const $ = s => document.querySelector(s);
 
 // ---------- Ajustes ----------
-const DEF = { sens: 1.6, acc: 0.06, scr: 3, inv: false, vib: true };
+const DEF = { sens: 1.6, acc: 0.06, scr: 3, inv: false, vib: true, pinch: true };
 let S = DEF;
 try { S = Object.assign({}, DEF, JSON.parse(localStorage.getItem('mandopc') || '{}')); } catch {}
 const save = () => { try { localStorage.setItem('mandopc', JSON.stringify(S)); } catch {} };
@@ -391,8 +392,13 @@ let ax = 0, ay = 0, sAcc = 0, hAcc = 0;
 let lastX = 0, lastY = 0, cx = 0, cy = 0;
 let startT = 0, moved = 0, maxF = 0;
 let clickTimer = null, dragPending = false, dragging = false;
+// Gesto de 2 dedos: null (sin decidir) | 'scroll' | 'zoom'
+let g2 = null, d0 = 0, c0x = 0, c0y = 0, zBase = 0;
+const ZOOM_STEP = 0.16; // ~17% de separación de dedos = un paso de zoom
 
 function centroid(ts) { let x = 0, y = 0; for (const t of ts) { x += t.clientX; y += t.clientY; } return [x / ts.length, y / ts.length]; }
+function spread(ts) { return Math.hypot(ts[0].clientX - ts[1].clientX, ts[0].clientY - ts[1].clientY); }
+function start2(ts) { g2 = null; d0 = spread(ts); [c0x, c0y] = centroid(ts); [cx, cy] = [c0x, c0y]; }
 function addMove(dx, dy) {
   const v = Math.hypot(dx, dy);
   const f = S.sens * (1 + Math.min(v, 40) * S.acc);
@@ -409,7 +415,7 @@ pad.addEventListener('touchstart', e => {
     if (clickTimer) { clearTimeout(clickTimer); clickTimer = null; dragPending = true; }
   } else {
     maxF = Math.max(maxF, n);
-    [cx, cy] = centroid(e.touches);
+    if (n === 2) start2(e.touches); else [cx, cy] = centroid(e.touches);
   }
 }, { passive: false });
 
@@ -429,9 +435,21 @@ pad.addEventListener('touchmove', e => {
     const dx = x - cx, dy = y - cy;
     cx = x; cy = y;
     moved += Math.abs(dx) + Math.abs(dy);
-    const k = S.scr * (S.inv ? -1 : 1);
-    sAcc += dy * k;
-    hAcc += -dx * k;
+    const dist = spread(e.touches);
+    if (!g2) {
+      const dd = Math.abs(dist - d0), dc = Math.hypot(x - c0x, y - c0y);
+      if (S.pinch && dd > 22 && dd > dc * 1.2) { g2 = 'zoom'; zBase = dist; }
+      else if (dc > 10) g2 = 'scroll';
+    }
+    if (g2 === 'scroll') {
+      const k = S.scr * (S.inv ? -1 : 1);
+      sAcc += dy * k;
+      hAcc += -dx * k;
+    } else if (g2 === 'zoom') {
+      let r = Math.log(dist / zBase);
+      while (r > ZOOM_STEP) { send({ t: 'z', n: 1 }); zBase *= Math.exp(ZOOM_STEP); r -= ZOOM_STEP; buzz(); }
+      while (r < -ZOOM_STEP) { send({ t: 'z', n: -1 }); zBase *= Math.exp(-ZOOM_STEP); r += ZOOM_STEP; buzz(); }
+    }
   }
 }, { passive: false });
 
@@ -439,7 +457,8 @@ function touchEnd(e) {
   e.preventDefault();
   const n = e.touches.length;
   if (n === 1) { lastX = e.touches[0].clientX; lastY = e.touches[0].clientY; return; }
-  if (n > 1) { [cx, cy] = centroid(e.touches); return; }
+  if (n === 2) { start2(e.touches); return; }
+  if (n > 2) { [cx, cy] = centroid(e.touches); return; }
   const tap = performance.now() - startT < 260 && moved < 12;
   if (dragging) {
     send({ t: 'u', b: 'l' }); dragging = false; dragPending = false;
@@ -502,7 +521,7 @@ const bind = (id, lab, fmt) => {
 bind('sens', 'vSens', v => v.toFixed(1) + 'x');
 bind('acc', 'vAcc', v => Math.round(v * 100) + '%');
 bind('scr', 'vScr', v => v.toFixed(1) + 'x');
-bind('inv'); bind('vib');
+bind('inv'); bind('vib'); bind('pinch');
 $('#bSet').onclick = () => $('#ovSet').classList.add('show');
 $('#bClose').onclick = () => $('#ovSet').classList.remove('show');
 $('#ovSet').addEventListener('click', e => { if (e.target.id === 'ovSet') $('#ovSet').classList.remove('show'); });

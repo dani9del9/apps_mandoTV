@@ -22,6 +22,7 @@ Controla el ratón y el teclado del PC desde el móvil por WiFi. Pensado para us
 | Toque con 2 dedos | Clic derecho |
 | Toque con 3 dedos | Clic central |
 | Mover 2 dedos | Scroll (vertical y horizontal) |
+| Pellizcar (abrir/cerrar 2 dedos) | Zoom (Ctrl + rueda: navegador, fotos, Office…) |
 
 Los botones de abajo (Izquierdo / Medio / Derecho) también sirven para arrastrar si los mantienes pulsados.
 
