@@ -1,0 +1,18 @@
+[17:18:55] 
+========================================
+[17:18:55]   MandoPC en marcha
+[17:18:55] ========================================
+[17:18:55] Abre esto en el navegador del móvil (misma WiFi):
+
+[17:18:55]    http://192.168.1.132:8765/?pin=9999
+[17:18:55] 
+PIN: 9999   (está en config.json, puedes cambiarlo)
+[17:18:55] Chrome: C:\Program Files\Google\Chrome\Application\chrome.exe
+[17:18:55] Favoritos: 4
+[17:18:55] Deja esta ventana abierta. Ctrl+C para cerrar.
+
+[17:18:56] ✔ Control de ratón y teclado listo.
+[17:19:00] 📱 Móvil conectado: 192.168.1.132
+[17:19:01] 📱 Móvil conectado: 192.168.1.136
+[17:19:24] 📴 Móvil desconectado: 192.168.1.136
+[17:19:24] 📱 Móvil conectado: 192.168.1.136

@@ -1,0 +1,520 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#0f1115">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<title>MandoPC</title>
+<style>
+  :root{--bg:#0f1115;--pan:#181b22;--b:#272b35;--tx:#e7e9ee;--mu:#8a90a0;--ac:#4f8cff;--ok:#33c47a;--bad:#ff5d5d;--lock:#c98a12}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--tx);font:15px system-ui,-apple-system,Segoe UI,Roboto,sans-serif;overflow:hidden;overscroll-behavior:none}
+  body{display:flex;flex-direction:column;height:100dvh;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+  header{display:flex;align-items:center;gap:8px;padding:8px 10px}
+  .dot{width:10px;height:10px;border-radius:50%;background:var(--bad);flex:none;transition:background .2s}
+  .dot.on{background:var(--ok)}
+  #st{flex:1;color:var(--mu);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  button{background:var(--pan);color:var(--tx);border:1px solid var(--b);border-radius:10px;padding:10px 12px;font:inherit;touch-action:manipulation;cursor:pointer}
+  button:active,button.on{background:var(--ac);border-color:var(--ac)}
+  button.lock{background:var(--lock);border-color:var(--lock)}
+  .ico{font-size:18px;padding:7px 12px;line-height:1}
+  #keys{display:none;flex-direction:column;gap:6px;padding:0 8px 6px;max-height:48dvh;overflow-y:auto}
+  #keys.show{display:flex}
+  .row{display:flex;gap:6px}
+  .row button{flex:1 1 0;min-width:0;padding:11px 4px;font-size:14px}
+  .hs{overflow-x:auto;scrollbar-width:none}
+  .hs::-webkit-scrollbar{display:none}
+  .hs button{flex:0 0 auto;min-width:50px}
+  .lbl{font-size:11px;color:var(--mu);margin:2px 2px -2px;text-transform:uppercase;letter-spacing:.06em}
+  .txtrow{display:flex;gap:6px}
+  .txtrow input{flex:1;min-width:0;background:var(--pan);color:var(--tx);border:1px solid var(--b);border-radius:10px;padding:10px;font-size:16px;-webkit-user-select:text;user-select:text}
+  #pad{flex:1;margin:4px 8px;border-radius:18px;border:1px solid var(--b);position:relative;touch-action:none;
+       background:radial-gradient(circle at 50% 40%,#1a1e27 0,#13161c 70%)}
+  #hint{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;color:#3d4452;font-size:13px;line-height:1.8;pointer-events:none;padding:24px}
+  #btns{display:flex;gap:8px;padding:6px 8px 10px}
+  #btns button{flex:1;height:62px;font-size:14px;border-radius:14px}
+  #btns #bm{flex:.45}
+  #kbd{position:fixed;left:0;bottom:0;width:2px;height:2px;opacity:0;border:0;padding:0;font-size:16px;background:transparent;color:transparent}
+  .ov{position:fixed;inset:0;background:rgba(5,6,9,.82);display:none;align-items:center;justify-content:center;z-index:10;padding:20px}
+  .ov.show{display:flex}
+  .card{background:var(--pan);border:1px solid var(--b);border-radius:16px;padding:18px;width:100%;max-width:380px;display:flex;flex-direction:column;gap:14px}
+  .card h3{margin:0;font-size:17px}
+  .card label{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--mu)}
+  .card label span{color:var(--tx)}
+  .card input[type=range]{width:100%}
+  .card .chk{flex-direction:row;align-items:center;gap:10px;color:var(--tx)}
+  .card input[type=tel]{background:var(--bg);color:var(--tx);border:1px solid var(--b);border-radius:10px;padding:12px;font-size:22px;text-align:center;letter-spacing:.3em;-webkit-user-select:text;user-select:text}
+  #pinErr{color:var(--bad);font-size:13px;min-height:1em}
+  #favs{display:none;flex-direction:column;gap:6px;padding:0 8px 6px;max-height:55dvh;overflow-y:auto}
+  #favs.show{display:flex}
+  .favhead{display:flex;align-items:center;gap:6px}
+  .favhead .lbl{flex:1;margin:0}
+  .favhead button{padding:7px 12px;font-size:13px}
+  #favList{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  #favList.edit{grid-template-columns:1fr}
+  .fav{display:flex;gap:6px;min-width:0}
+  .favb{flex:1;min-width:0;display:flex;align-items:center;gap:10px;text-align:left;padding:10px}
+  .favb img{width:24px;height:24px;border-radius:5px;flex:none}
+  .favb .ini{width:24px;height:24px;border-radius:6px;flex:none;background:var(--ac);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px}
+  .favb span{display:flex;flex-direction:column;min-width:0}
+  .favb b,.favb small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .favb b{font-weight:600;font-size:14px}
+  .favb small{color:var(--mu);font-size:11px}
+  .favb.sent{background:var(--ok);border-color:var(--ok)}
+  .fav .mini{flex:none;padding:8px 10px}
+  .empty{grid-column:1/-1;color:var(--mu);font-size:13px;padding:10px 4px}
+  #favForm{display:none;flex-direction:column;gap:6px;background:var(--pan);border:1px solid var(--b);border-radius:12px;padding:10px}
+  #favForm input{background:var(--bg);color:var(--tx);border:1px solid var(--b);border-radius:10px;padding:10px;font-size:16px;-webkit-user-select:text;user-select:text}
+  #favForm .row button{padding:10px}
+</style>
+</head>
+<body>
+<header>
+  <div class="dot" id="dot"></div>
+  <div id="st">Conectando…</div>
+  <button class="ico" id="bFav" title="Favoritos">★</button>
+  <button class="ico" id="bKbd" title="Teclado">⌨️</button>
+  <button class="ico" id="bKeys" title="Teclas especiales">⌘</button>
+  <button class="ico" id="bSet" title="Ajustes">⚙️</button>
+</header>
+
+<section id="favs">
+  <div class="favhead">
+    <div class="lbl">Favoritos · se abren en Chrome</div>
+    <button id="bFavEdit">Editar</button>
+  </div>
+  <div id="favList"></div>
+  <div id="favForm">
+    <input id="favName" type="text" placeholder="Nombre (ej. YouTube)" autocomplete="off">
+    <input id="favUrl" type="url" placeholder="URL (ej. youtube.com)" autocomplete="off" autocapitalize="off">
+    <div class="row"><button id="favSave">Añadir</button><button id="favCancel" style="display:none">Cancelar</button></div>
+  </div>
+</section>
+
+<section id="keys">
+  <div class="row">
+    <button data-mod="ctrl">Ctrl</button><button data-mod="alt">Alt</button>
+    <button data-mod="shift">Shift</button><button data-mod="win">Win</button>
+  </div>
+  <div class="row">
+    <button data-k="esc">Esc</button><button data-k="tab">Tab</button>
+    <button data-k="backspace">⌫</button><button data-k="delete">Supr</button><button data-k="enter">⏎</button>
+  </div>
+  <div class="row">
+    <button data-k="home">Inicio</button><button data-k="left">←</button><button data-k="up">↑</button>
+    <button data-k="down">↓</button><button data-k="right">→</button><button data-k="end">Fin</button>
+  </div>
+  <div class="lbl">Atajos</div>
+  <div class="row hs">
+    <button data-k="alt+tab">Alt+Tab</button><button data-k="win+d">Escritorio</button>
+    <button data-k="alt+f4">Cerrar</button><button data-k="alt+enter">Alt+⏎</button>
+    <button data-k="ctrl+c">Copiar</button><button data-k="ctrl+v">Pegar</button>
+    <button data-k="ctrl+z">Deshacer</button><button data-k="win">Menú Inicio</button>
+    <button data-k="pageup">RePág</button><button data-k="pagedown">AvPág</button>
+    <button data-k="space">Espacio</button>
+  </div>
+  <div class="lbl">Multimedia</div>
+  <div class="row">
+    <button data-k="voldown">🔉</button><button data-k="volup">🔊</button><button data-k="volmute">🔇</button>
+    <button data-k="prev">⏮</button><button data-k="playpause">⏯</button><button data-k="next">⏭</button>
+  </div>
+  <div class="row hs" id="frow"></div>
+  <div class="lbl">Escribir texto largo</div>
+  <div class="txtrow">
+    <input id="txt" type="text" placeholder="Escribe o dicta aquí…" autocomplete="off">
+    <button id="bTxt">Enviar</button><button id="bTxtE">+⏎</button>
+  </div>
+</section>
+
+<div id="pad"><div id="hint">1 dedo: mover · toque: clic<br>2 dedos: scroll · toque con 2: clic derecho<br>doble toque y arrastrar: arrastrar</div></div>
+
+<div id="btns">
+  <button id="bl">Izquierdo</button>
+  <button id="bm">Medio</button>
+  <button id="br">Derecho</button>
+</div>
+
+<input id="kbd" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="enter">
+
+<div class="ov" id="ovSet">
+  <div class="card">
+    <h3>Ajustes</h3>
+    <label>Velocidad del ratón <span id="vSens"></span><input type="range" id="sens" min="0.4" max="5" step="0.1"></label>
+    <label>Aceleración <span id="vAcc"></span><input type="range" id="acc" min="0" max="0.15" step="0.01"></label>
+    <label>Velocidad del scroll <span id="vScr"></span><input type="range" id="scr" min="0.5" max="10" step="0.5"></label>
+    <label class="chk"><input type="checkbox" id="inv"> Invertir scroll</label>
+    <label class="chk"><input type="checkbox" id="vib"> Vibrar al hacer clic</label>
+    <button id="bFull">Pantalla completa</button>
+    <button id="bPin">Cambiar PIN</button>
+    <button id="bClose">Cerrar</button>
+  </div>
+</div>
+
+<div class="ov" id="ovPin">
+  <div class="card">
+    <h3>PIN de MandoPC</h3>
+    <div style="color:var(--mu);font-size:13px">Lo ves en la ventana del PC al arrancar MandoPC (o en config.json).</div>
+    <input type="tel" id="pinIn" maxlength="8" inputmode="numeric" autocomplete="off">
+    <div id="pinErr"></div>
+    <button id="pinOk">Conectar</button>
+  </div>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+
+// ---------- Ajustes ----------
+const DEF = { sens: 1.6, acc: 0.06, scr: 3, inv: false, vib: true };
+let S = DEF;
+try { S = Object.assign({}, DEF, JSON.parse(localStorage.getItem('mandopc') || '{}')); } catch {}
+const save = () => { try { localStorage.setItem('mandopc', JSON.stringify(S)); } catch {} };
+
+// ---------- Conexión ----------
+const qs = new URLSearchParams(location.search);
+let pin = qs.get('pin') || (() => { try { return localStorage.getItem('pin'); } catch { return ''; } })() || '';
+if (qs.get('pin')) { try { localStorage.setItem('pin', pin); } catch {} history.replaceState(null, '', location.pathname); }
+
+let ws = null, retry = null, favsOk = false;
+function status(ok, txt) {
+  $('#dot').classList.toggle('on', ok);
+  $('#st').textContent = txt || (ok ? 'Conectado a ' + location.hostname : 'Sin conexión, reintentando…');
+}
+function connect() {
+  if (!pin) return askPin();
+  if (ws && ws.readyState < 2) return;
+  clearTimeout(retry);
+  status(false, 'Conectando…');
+  ws = new WebSocket((location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/ws?pin=' + encodeURIComponent(pin));
+  ws.onopen = () => {
+    status(true);
+    favsOk = false;
+    send({ t: 'fav_get' });
+    setTimeout(() => {
+      if (!favsOk && ws && ws.readyState === 1) {
+        $('#favList').innerHTML = '<div class="empty">El PC está ejecutando una versión antigua de MandoPC. Ciérrala y abre de nuevo iniciar.bat.</div>';
+      }
+    }, 2500);
+  };
+  ws.onclose = e => {
+    ws = null;
+    if (e.code === 4001) {
+      pin = ''; try { localStorage.removeItem('pin'); } catch {}
+      status(false, 'PIN incorrecto');
+      return askPin('PIN incorrecto');
+    }
+    status(false);
+    retry = setTimeout(connect, 1200);
+  };
+  ws.onerror = () => {};
+  ws.onmessage = e => {
+    let m; try { m = JSON.parse(e.data); } catch { return; }
+    if (m.t === 'favs' && Array.isArray(m.list)) { favsOk = true; favs = m.list; renderFavs(); }
+  };
+}
+function send(o) { if (ws && ws.readyState === 1) ws.send(JSON.stringify(o)); }
+document.addEventListener('visibilitychange', () => { if (!document.hidden) connect(); });
+
+function askPin(err) {
+  $('#pinErr').textContent = err || '';
+  $('#ovPin').classList.add('show');
+  setTimeout(() => $('#pinIn').focus(), 50);
+}
+$('#pinOk').onclick = () => {
+  const v = $('#pinIn').value.trim();
+  if (!v) return;
+  pin = v; try { localStorage.setItem('pin', v); } catch {}
+  $('#ovPin').classList.remove('show');
+  connect();
+};
+$('#pinIn').addEventListener('keydown', e => { if (e.key === 'Enter') $('#pinOk').click(); });
+
+const buzz = () => { if (S.vib && navigator.vibrate) navigator.vibrate(12); };
+
+// ---------- Modificadores (toque: una vez · otro toque: fijo · otro: quitar) ----------
+const mods = new Set(), locked = new Set();
+function paintMods() {
+  document.querySelectorAll('[data-mod]').forEach(b => {
+    const m = b.dataset.mod;
+    b.classList.toggle('on', mods.has(m) && !locked.has(m));
+    b.classList.toggle('lock', locked.has(m));
+  });
+}
+function releaseMods() { [...mods].forEach(m => { if (!locked.has(m)) mods.delete(m); }); paintMods(); }
+document.querySelectorAll('[data-mod]').forEach(b => b.addEventListener('click', () => {
+  const m = b.dataset.mod;
+  if (locked.has(m)) { locked.delete(m); mods.delete(m); }
+  else if (mods.has(m)) locked.add(m);
+  else mods.add(m);
+  paintMods(); buzz();
+}));
+
+// ---------- Teclas especiales ----------
+const frow = $('#frow');
+for (let i = 1; i <= 12; i++) { const b = document.createElement('button'); b.dataset.k = 'f' + i; b.textContent = 'F' + i; frow.appendChild(b); }
+document.querySelectorAll('[data-k]').forEach(b => b.addEventListener('click', () => {
+  const parts = b.dataset.k.split('+');
+  const k = parts.pop();
+  send({ t: 'k', k, m: [...new Set([...parts, ...mods])] });
+  releaseMods(); buzz();
+}));
+// Paneles: solo uno abierto a la vez
+function togglePanel(id, btn) {
+  [['#keys', '#bKeys'], ['#favs', '#bFav']].forEach(([p, b]) => {
+    const open = p === id && !$(p).classList.contains('show');
+    $(p).classList.toggle('show', open);
+    $(b).classList.toggle('on', open);
+  });
+}
+$('#bKeys').onclick = () => togglePanel('#keys');
+$('#bFav').onclick = () => togglePanel('#favs');
+
+// ---------- Favoritos ----------
+let favs = [], favEdit = false, favIdx = -1;
+const hostOf = u => { try { return new URL(u).hostname.replace(/^www\./, ''); } catch { return u; } };
+function saveFavs() { send({ t: 'fav_save', list: favs }); renderFavs(); }
+function miniBtn(txt, fn) { const b = document.createElement('button'); b.className = 'mini'; b.textContent = txt; b.onclick = fn; return b; }
+function renderFavs() {
+  const L = $('#favList');
+  L.innerHTML = '';
+  L.classList.toggle('edit', favEdit);
+  if (!favs.length) L.innerHTML = '<div class="empty">Aún no hay favoritos. Pulsa «Editar» para añadir.</div>';
+  favs.forEach((f, i) => {
+    const row = document.createElement('div'); row.className = 'fav';
+    const b = document.createElement('button'); b.className = 'favb';
+    const host = hostOf(f.url);
+    const img = document.createElement('img');
+    img.src = 'https://www.google.com/s2/favicons?sz=64&domain=' + encodeURIComponent(host);
+    img.onerror = () => { const d = document.createElement('div'); d.className = 'ini'; d.textContent = (f.name[0] || '?').toUpperCase(); img.replaceWith(d); };
+    const sp = document.createElement('span');
+    const nb = document.createElement('b'); nb.textContent = f.name;
+    const sm = document.createElement('small'); sm.textContent = host;
+    sp.append(nb, sm); b.append(img, sp);
+    b.onclick = () => {
+      if (favEdit) return startFavEdit(i);
+      send({ t: 'open', url: f.url }); buzz();
+      b.classList.add('sent'); setTimeout(() => b.classList.remove('sent'), 400);
+    };
+    row.appendChild(b);
+    if (favEdit) {
+      row.appendChild(miniBtn('↑', () => { if (i > 0) { [favs[i - 1], favs[i]] = [favs[i], favs[i - 1]]; saveFavs(); } }));
+      row.appendChild(miniBtn('↓', () => { if (i < favs.length - 1) { [favs[i + 1], favs[i]] = [favs[i], favs[i + 1]]; saveFavs(); } }));
+      row.appendChild(miniBtn('🗑', () => { if (confirmDel(f)) { favs.splice(i, 1); if (favIdx === i) resetFavForm(); saveFavs(); } }));
+    }
+    L.appendChild(row);
+  });
+  $('#favForm').style.display = favEdit ? 'flex' : 'none';
+  $('#bFavEdit').textContent = favEdit ? 'Listo' : 'Editar';
+  $('#bFavEdit').classList.toggle('on', favEdit);
+}
+// Borrado con doble toque en vez de confirm() (los diálogos bloquean en algunos móviles)
+let delArm = null;
+function confirmDel(f) {
+  if (delArm === f) { delArm = null; return true; }
+  delArm = f; $('#st').textContent = 'Toca 🗑 otra vez para borrar «' + f.name + '»';
+  setTimeout(() => { if (delArm === f) { delArm = null; status(!!(ws && ws.readyState === 1)); } }, 2500);
+  return false;
+}
+function resetFavForm() {
+  favIdx = -1; $('#favName').value = ''; $('#favUrl').value = '';
+  $('#favSave').textContent = 'Añadir'; $('#favCancel').style.display = 'none';
+}
+function startFavEdit(i) {
+  favIdx = i; $('#favName').value = favs[i].name; $('#favUrl').value = favs[i].url;
+  $('#favSave').textContent = 'Guardar'; $('#favCancel').style.display = '';
+  $('#favName').focus();
+}
+$('#bFavEdit').onclick = () => { favEdit = !favEdit; resetFavForm(); renderFavs(); };
+$('#favCancel').onclick = resetFavForm;
+$('#favSave').onclick = () => {
+  let url = $('#favUrl').value.trim();
+  if (!url) return $('#favUrl').focus();
+  if (!/^[a-z][a-z0-9+.-]*:\/\//i.test(url)) url = 'https://' + url;
+  try { new URL(url); } catch { return $('#favUrl').focus(); }
+  const name = $('#favName').value.trim() || hostOf(url);
+  if (favIdx >= 0) favs[favIdx] = { name, url }; else favs.push({ name, url });
+  resetFavForm(); saveFavs();
+};
+$('#favUrl').addEventListener('keydown', e => { if (e.key === 'Enter') $('#favSave').click(); });
+renderFavs();
+
+function sendText(s, enter) {
+  if (s) send({ t: 'txt', s });
+  if (enter) send({ t: 'k', k: 'enter' });
+}
+$('#bTxt').onclick = () => { sendText($('#txt').value, false); $('#txt').value = ''; buzz(); };
+$('#bTxtE').onclick = () => { sendText($('#txt').value, true); $('#txt').value = ''; buzz(); };
+
+// ---------- Teclado del móvil (escritura en vivo) ----------
+const ki = $('#kbd');
+const SENT = ' ';
+let last = SENT, composing = false;
+function resetKi() { ki.value = SENT; last = SENT; try { ki.setSelectionRange(1, 1); } catch {} }
+function maybeReset() { if (!composing && (ki.value !== SENT) && (!ki.value.startsWith(SENT) || ki.value.length > 30 || /\s$/.test(ki.value))) resetKi(); }
+function typeText(s) {
+  const m = [...mods];
+  if (m.length && s.length === 1 && /^[a-z0-9]$/i.test(s)) { send({ t: 'k', k: s.toLowerCase(), m }); releaseMods(); }
+  else { send({ t: 'txt', s }); if (m.length) releaseMods(); }
+}
+ki.addEventListener('compositionstart', () => composing = true);
+ki.addEventListener('compositionend', () => { composing = false; setTimeout(maybeReset, 0); });
+ki.addEventListener('input', () => {
+  const v = ki.value;
+  let i = 0;
+  while (i < last.length && i < v.length && last[i] === v[i]) i++;
+  const del = last.length - i, add = v.slice(i);
+  last = v;
+  if (del > 0) send({ t: 'k', k: 'backspace', n: del });
+  if (add) typeText(add);
+  if (!ki.value.length) resetKi(); else maybeReset();
+});
+ki.addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); send({ t: 'k', k: 'enter', m: [...mods] }); releaseMods(); resetKi(); }
+});
+ki.addEventListener('blur', () => $('#bKbd').classList.remove('on'));
+ki.addEventListener('focus', () => $('#bKbd').classList.add('on'));
+$('#bKbd').addEventListener('pointerdown', e => e.preventDefault());
+$('#bKbd').onclick = () => {
+  if (document.activeElement === ki) ki.blur();
+  else { resetKi(); ki.focus(); }
+};
+
+// ---------- Touchpad ----------
+const pad = $('#pad');
+let ax = 0, ay = 0, sAcc = 0, hAcc = 0;
+let lastX = 0, lastY = 0, cx = 0, cy = 0;
+let startT = 0, moved = 0, maxF = 0;
+let clickTimer = null, dragPending = false, dragging = false;
+
+function centroid(ts) { let x = 0, y = 0; for (const t of ts) { x += t.clientX; y += t.clientY; } return [x / ts.length, y / ts.length]; }
+function addMove(dx, dy) {
+  const v = Math.hypot(dx, dy);
+  const f = S.sens * (1 + Math.min(v, 40) * S.acc);
+  ax += dx * f; ay += dy * f;
+}
+function click(b) { send({ t: 'c', b, m: [...mods] }); releaseMods(); buzz(); }
+
+pad.addEventListener('touchstart', e => {
+  e.preventDefault();
+  const n = e.touches.length;
+  if (n === 1) {
+    startT = performance.now(); moved = 0; maxF = 1;
+    lastX = e.touches[0].clientX; lastY = e.touches[0].clientY;
+    if (clickTimer) { clearTimeout(clickTimer); clickTimer = null; dragPending = true; }
+  } else {
+    maxF = Math.max(maxF, n);
+    [cx, cy] = centroid(e.touches);
+  }
+}, { passive: false });
+
+pad.addEventListener('touchmove', e => {
+  e.preventDefault();
+  const n = e.touches.length;
+  if (n === 1) {
+    const t = e.touches[0];
+    const dx = t.clientX - lastX, dy = t.clientY - lastY;
+    lastX = t.clientX; lastY = t.clientY;
+    moved += Math.abs(dx) + Math.abs(dy);
+    if (maxF > 1) return;
+    if (dragPending && !dragging && moved > 6) { dragging = true; send({ t: 'd', b: 'l' }); }
+    addMove(dx, dy);
+  } else if (n === 2) {
+    const [x, y] = centroid(e.touches);
+    const dx = x - cx, dy = y - cy;
+    cx = x; cy = y;
+    moved += Math.abs(dx) + Math.abs(dy);
+    const k = S.scr * (S.inv ? -1 : 1);
+    sAcc += dy * k;
+    hAcc += -dx * k;
+  }
+}, { passive: false });
+
+function touchEnd(e) {
+  e.preventDefault();
+  const n = e.touches.length;
+  if (n === 1) { lastX = e.touches[0].clientX; lastY = e.touches[0].clientY; return; }
+  if (n > 1) { [cx, cy] = centroid(e.touches); return; }
+  const tap = performance.now() - startT < 260 && moved < 12;
+  if (dragging) {
+    send({ t: 'u', b: 'l' }); dragging = false; dragPending = false;
+  } else if (tap && maxF === 1) {
+    if (dragPending) { dragPending = false; send({ t: 'dc' }); buzz(); }
+    else clickTimer = setTimeout(() => { clickTimer = null; click('l'); }, 190);
+  } else if (tap && maxF === 2) {
+    click('r');
+  } else if (tap && maxF >= 3) {
+    click('m');
+  } else if (dragPending) {
+    dragPending = false; click('l');
+  }
+  maxF = 0;
+}
+pad.addEventListener('touchend', touchEnd, { passive: false });
+pad.addEventListener('touchcancel', touchEnd, { passive: false });
+
+// Ratón de prueba desde un PC (por si abres la web en el navegador del ordenador)
+let mDown = false;
+pad.addEventListener('mousedown', e => { mDown = true; lastX = e.clientX; lastY = e.clientY; });
+addEventListener('mouseup', () => mDown = false);
+pad.addEventListener('mousemove', e => { if (!mDown) return; addMove(e.clientX - lastX, e.clientY - lastY); lastX = e.clientX; lastY = e.clientY; });
+
+(function loop() {
+  const ix = Math.trunc(ax), iy = Math.trunc(ay);
+  if (ix || iy) { send({ t: 'm', x: ix, y: iy }); ax -= ix; ay -= iy; }
+  const is = Math.trunc(sAcc), ih = Math.trunc(hAcc);
+  if (is) { send({ t: 's', y: is }); sAcc -= is; }
+  if (ih) { send({ t: 'h', x: ih }); hAcc -= ih; }
+  requestAnimationFrame(loop);
+})();
+
+// ---------- Botones físicos (mantener = arrastrar) ----------
+[['#bl', 'l'], ['#bm', 'm'], ['#br', 'r']].forEach(([sel, b]) => {
+  const el = $(sel);
+  let down = false;
+  const m = [];
+  el.addEventListener('pointerdown', e => {
+    e.preventDefault(); down = true; el.classList.add('on'); buzz();
+    m.length = 0; m.push(...mods);
+    send({ t: 'd', b, m });
+  });
+  const up = () => { if (!down) return; down = false; el.classList.remove('on'); send({ t: 'u', b, m }); releaseMods(); };
+  el.addEventListener('pointerup', up);
+  el.addEventListener('pointercancel', up);
+  el.addEventListener('pointerleave', up);
+  el.addEventListener('contextmenu', e => e.preventDefault());
+});
+
+// ---------- Panel de ajustes ----------
+const bind = (id, lab, fmt) => {
+  const el = $('#' + id), l = lab && $('#' + lab);
+  if (el.type === 'checkbox') { el.checked = S[id]; el.onchange = () => { S[id] = el.checked; save(); }; return; }
+  el.value = S[id];
+  const show = () => l && (l.textContent = fmt(S[id]));
+  show();
+  el.oninput = () => { S[id] = parseFloat(el.value); show(); save(); };
+};
+bind('sens', 'vSens', v => v.toFixed(1) + 'x');
+bind('acc', 'vAcc', v => Math.round(v * 100) + '%');
+bind('scr', 'vScr', v => v.toFixed(1) + 'x');
+bind('inv'); bind('vib');
+$('#bSet').onclick = () => $('#ovSet').classList.add('show');
+$('#bClose').onclick = () => $('#ovSet').classList.remove('show');
+$('#ovSet').addEventListener('click', e => { if (e.target.id === 'ovSet') $('#ovSet').classList.remove('show'); });
+$('#bFull').onclick = () => {
+  const d = document.documentElement;
+  if (document.fullscreenElement) document.exitFullscreen();
+  else (d.requestFullscreen || d.webkitRequestFullscreen || (() => {})).call(d);
+};
+$('#bPin').onclick = () => { $('#ovSet').classList.remove('show'); if (ws) ws.close(); pin = ''; askPin(); };
+
+paintMods();
+connect();
+</script>
+</body>
+</html>

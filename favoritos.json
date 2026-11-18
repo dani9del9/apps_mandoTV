@@ -1,0 +1,18 @@
+[
+  {
+    "name": "YouTube",
+    "url": "https://www.youtube.com/"
+  },
+  {
+    "name": "Netflix",
+    "url": "https://www.netflix.com/"
+  },
+  {
+    "name": "Twitch",
+    "url": "https://www.twitch.tv/"
+  },
+  {
+    "name": "Pluto TV South Park",
+    "url": "https://pluto.tv/es/shows/south-park-es/"
+  }
+]
