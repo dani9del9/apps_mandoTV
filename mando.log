@@ -1,18 +1,22 @@
-[17:18:55] 
+[14:48:23] 
 ========================================
-[17:18:55]   MandoPC en marcha
-[17:18:55] ========================================
-[17:18:55] Abre esto en el navegador del móvil (misma WiFi):
+[14:48:23]   MandoPC en marcha
+[14:48:23] ========================================
+[14:48:23] Abre esto en el navegador del móvil (misma WiFi):
 
-[17:18:55]    http://192.168.1.132:8765/?pin=9999
-[17:18:55] 
+[14:48:23]    http://192.168.1.132:8765/?pin=9999
+[14:48:23] 
 PIN: 9999   (está en config.json, puedes cambiarlo)
-[17:18:55] Chrome: C:\Program Files\Google\Chrome\Application\chrome.exe
-[17:18:55] Favoritos: 4
-[17:18:55] Deja esta ventana abierta. Ctrl+C para cerrar.
+[14:48:23] Chrome: C:\Program Files\Google\Chrome\Application\chrome.exe
+[14:48:23] Favoritos: 4
+[14:48:23] Deja esta ventana abierta. Ctrl+C para cerrar.
 
-[17:18:56] ✔ Control de ratón y teclado listo.
-[17:19:00] 📱 Móvil conectado: 192.168.1.132
-[17:19:01] 📱 Móvil conectado: 192.168.1.136
-[17:19:24] 📴 Móvil desconectado: 192.168.1.136
-[17:19:24] 📱 Móvil conectado: 192.168.1.136
+[14:48:23] 📱 Móvil conectado: 192.168.1.136
+[14:48:24] ✔ Control de ratón y teclado listo.
+[14:55:20] 📴 Móvil desconectado: 192.168.1.136
+[16:15:18] 📱 Móvil conectado: 192.168.1.136
+[16:15:24] 📴 Móvil desconectado: 192.168.1.136
+[16:15:59] 📱 Móvil conectado: 192.168.1.136
+[16:20:19] 📴 Móvil desconectado: 192.168.1.136
+[15:18:53] 📱 Móvil conectado: 192.168.1.136
+[15:18:55] 📴 Móvil desconectado: 192.168.1.136
